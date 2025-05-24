@@ -90,6 +90,24 @@ static inline MD_FLOAT simd_real_incr_reduced_sum(
     return *((MD_FLOAT*)&a0);
 }
 
+static inline MD_FLOAT simd_real_incr_reduced_sum_j2(
+    MD_FLOAT* m, MD_SIMD_FLOAT v0, MD_SIMD_FLOAT v1)
+{
+    __m256d sum0 = _mm256_hadd_pd(v0, v1);  
+
+    __m128d low = _mm256_castpd256_pd128(sum0); 
+    __m128d high = _mm256_extractf128_pd(sum0,  0x1);  
+    __m128d total = _mm_add_pd(low, high); 
+
+    __m128d mem = _mm_loadu_pd(m); 
+    total = _mm_add_pd(total, mem);
+
+    _mm_storeu_pd(m, total);
+
+    total = _mm_hadd_pd(total, total);
+    return _mm_cvtsd_f64(total);
+}
+
 static inline MD_SIMD_FLOAT simd_real_select_by_mask(MD_SIMD_FLOAT a, MD_SIMD_MASK m)
 {
     return _mm256_and_pd(a, m);
